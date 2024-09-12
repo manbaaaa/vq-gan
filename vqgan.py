@@ -53,16 +53,16 @@ class VQGAN(nn.Module):
         decoded_imgs = self.decoder(post_quan_conv_codebook_mapping)
         return decoded_imgs
 
-    def calculate_lambda(self, perceptual_loss, gan_loss):
+    def calculate_lambda(self, perceptual_loss, g_loss):
         last_layer = self.decoder.layers[-1]
         last_layer_weight = last_layer.weight
         perceptual_loss_grads = torch.autograd.grad(
             perceptual_loss, last_layer_weight, retain_graph=True
         )[0]
-        gan_loss_grads = torch.autograd.grad(
-            gan_loss, last_layer_weight, retain_graph=True
+        g_loss_grads = torch.autograd.grad(
+            g_loss, last_layer_weight, retain_graph=True
         )[0]
-        λ = torch.norm(perceptual_loss_grads) / (torch.norm(gan_loss_grads) + 1e-4)
+        λ = torch.norm(perceptual_loss_grads) / (torch.norm(g_loss_grads) + 1e-4)
         λ = torch.clamp(λ, 0, 1e4).detach()
         return λ * 0.8
 
